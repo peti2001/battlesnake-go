@@ -15,11 +15,6 @@ func respond(res http.ResponseWriter, obj interface{}) {
 
 func handleStart(res http.ResponseWriter, req *http.Request) {
 	data, err := NewGameStartRequest(req)
-	activeGame.height = data.Height
-	activeGame.width = data.Width
-	fmt.Println(data)
-	fmt.Println(activeGame)
-	fmt.Println(err)
 	if err != nil {
 		respond(res, GameStartResponse{
 			Taunt:   toStringPointer("battlesnake-go!"),
@@ -51,13 +46,8 @@ func handleMove(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 	activeGame := GameFactory(
-		data.You,
-		data.Width,
-		data.Height,
-		data.Food,
-		head,
+		data,
 	)
-	fmt.Println(activeGame)
 
 	if err != nil {
 		fmt.Println(err)

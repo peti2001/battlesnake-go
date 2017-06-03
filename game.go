@@ -2,32 +2,44 @@ package main
 
 import (
 	"math"
-	"fmt"
 )
 
 type Game struct {
-	me             string
-	width, height  int
-	foods []Point
+	data *MoveRequest
 	head Point
+	board         [][]int
 }
 
-func GameFactory(me string, width, height int, foods []Point, head Point) *Game {
+func GameFactory(data *MoveRequest) *Game {
+	var head Point
+	board := make([][]int, data.Width)
+	for i := 0;i < data.Width;i++ {
+		board[i] = make([]int, data.Height)
+	}
+
+	for _, snake := range data.Snakes {
+		if snake.Id == data.You {
+			head.X = snake.Coords[0].X
+			head.Y = snake.Coords[0].Y
+		}
+		for _, coord := range snake.Coords {
+			board[coord.X][coord.Y] = 1
+		}
+	}
+
 	return &Game{
-		me,
-		width,
-		height,
-		foods,
+		data,
 		head,
+		board,
 	}
 }
 
 func (g *Game) findClosestFood() int {
 	minIndex := 0
-	minDistance := math.Pow(float64(g.width + g.height), 2)
+	minDistance := math.Pow(float64(g.data.Width + g.data.Height), 2)
 
-	for i, food := range g.foods {
-		if d := math.Pow(float64(food.X - g.head.X), 2) + math.Pow(float64(food.Y - g.head.Y), 2); d < minDistance {
+	for i, food := range g.data.Food {
+		if d := math.Pow(float64(food.X - g.head.X), 2) + math.Pow(float64(food.Y-g.head.Y), 2); d < minDistance {
 			minDistance = d
 			minIndex = i
 		}
@@ -38,13 +50,12 @@ func (g *Game) findClosestFood() int {
 
 func (g *Game) ChooseDirection() string {
 	i := g.findClosestFood()
-	fmt.Println("Closest: ", i)
-	if dX := g.foods[i].X - g.head.X; dX > 0 {
+	if dX := g.data.Food[i].X - g.head.X; dX > 0 {
 		return "right"
 	} else if dX < 0 {
 		return "left"
 	}
-	if dY := g.foods[i].Y - g.head.Y; dY > 0 {
+	if dY := g.data.Food[i].Y - g.head.Y; dY > 0 {
 		return "down"
 	} else if dY < 0 {
 		return "up"
