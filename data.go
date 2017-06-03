@@ -3,14 +3,14 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
 type GameStartRequest struct {
-	GameId string `json:"game_id"`
 	Height int    `json:"height"`
 	Width  int    `json:"width"`
+	GameId string `json:"game_id"`
 }
 
 type GameStartResponse struct {
@@ -21,13 +21,13 @@ type GameStartResponse struct {
 }
 
 type MoveRequest struct {
+	You    string  `json:"you"`
 	Food   []Point `json:"food"`
 	GameId string  `json:"game_id"`
 	Height int     `json:"height"`
 	Width  int     `json:"width"`
 	Turn   int     `json:"turn"`
 	Snakes []Snake `json:"snakes"`
-	You    string  `json:"you"`
 }
 
 type MoveResponse struct {
@@ -49,14 +49,17 @@ type Snake struct {
 }
 
 func NewMoveRequest(req *http.Request) (*MoveRequest, error) {
+	body, _ := ioutil.ReadAll(req.Body)
 	decoded := MoveRequest{}
-	err := json.NewDecoder(req.Body).Decode(&decoded)
+	err := json.Unmarshal(body, &decoded)
 	return &decoded, err
 }
 
 func NewGameStartRequest(req *http.Request) (*GameStartRequest, error) {
 	decoded := GameStartRequest{}
-	err := json.NewDecoder(req.Body).Decode(&decoded)
+	body, _ := ioutil.ReadAll(req.Body)
+	err := json.Unmarshal(body, &decoded)
+
 	return &decoded, err
 }
 

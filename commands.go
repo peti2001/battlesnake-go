@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
-	"time"
 )
+
+var activeGame Game
 
 func respond(res http.ResponseWriter, obj interface{}) {
 	res.Header().Set("Content-Type", "application/json")
@@ -15,6 +15,11 @@ func respond(res http.ResponseWriter, obj interface{}) {
 
 func handleStart(res http.ResponseWriter, req *http.Request) {
 	data, err := NewGameStartRequest(req)
+	activeGame.height = data.Height
+	activeGame.width = data.Width
+	fmt.Println(data)
+	fmt.Println(activeGame)
+	fmt.Println(err)
 	if err != nil {
 		respond(res, GameStartResponse{
 			Taunt:   toStringPointer("battlesnake-go!"),
@@ -38,7 +43,24 @@ func handleStart(res http.ResponseWriter, req *http.Request) {
 
 func handleMove(res http.ResponseWriter, req *http.Request) {
 	data, err := NewMoveRequest(req)
+	var head Point
+	for _, s := range data.Snakes {
+		if s.Id == data.You {
+			head.X = s.Coords[0].X
+			head.Y = s.Coords[0].Y
+		}
+	}
+	activeGame := GameFactory(
+		data.You,
+		data.Width,
+		data.Height,
+		data.Food,
+		head,
+	)
+	fmt.Println(activeGame)
+
 	if err != nil {
+		fmt.Println(err)
 		respond(res, MoveResponse{
 			Move:  "up",
 			Taunt: toStringPointer("can't parse this!"),
@@ -46,17 +68,10 @@ func handleMove(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	directions := []string{
-		"up",
-		"down",
-		"left",
-		"right",
-	}
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	direction := activeGame.ChooseDirection()
 
 	respond(res, MoveResponse{
-		Move:  directions[r.Intn(4)],
+		Move:  direction,
 		Taunt: &data.You,
 	})
 }
