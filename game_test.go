@@ -7,16 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//type MoveRequest struct {
-//	You    string  `json:"you"`
-//	Food   []Point `json:"food"`
-//	GameId string  `json:"game_id"`
-//	Height int     `json:"height"`
-//	Width  int     `json:"width"`
-//	Turn   int     `json:"turn"`
-//	Snakes []Snake `json:"snakes"`
-//}
-
 func GetMoveRequestFixture() MoveRequest {
 	return MoveRequest{
 		"test-id-1",
@@ -55,7 +45,7 @@ func TestFindClosestFood(t *testing.T) {
 	index := activeGame.findClosestFood()
 
 	//Assert
-	assert.Equal(t, 1, index)
+	assert.Equal(t, Point{0, 1}, index[0].coord)
 
 }
 
@@ -73,6 +63,7 @@ func TestBackTrack_FindPath(t *testing.T) {
 	activeGame := GameFactory(&moveRequest)
 	bt := backTrack{
 		[]string{"up", "down", "left", "right"},
+		0,
 	}
 
 	//Act
@@ -104,6 +95,7 @@ func TestBackTrack_FindPath2(t *testing.T) {
 	}
 	bt := backTrack{
 		[]string{"up", "down", "left", "right"},
+		0,
 	}
 
 	//Act
@@ -111,6 +103,27 @@ func TestBackTrack_FindPath2(t *testing.T) {
 
 	//Assert
 	assert.Equal(t, []string{"left", "left", "down", "down", "down", "down", "down", "down", "down", "down", "right"}, path)
+}
+
+func TestState_HasEscapePath(t *testing.T) {
+	//Arrange
+	state := state{
+		[]string{"up", "down"},
+		"down",
+		[][]int{
+			{1, 1, 1, 1},
+			{1, 0, 0, 1},
+			{1, 1, 1, 1},
+			{0, 0, 0, 0},
+		},
+		Point{2, 1},
+	}
+
+	//Act
+	ret := state.HasEscapePath("left")
+
+	//Assert
+	assert.Equal(t, false, ret)
 }
 
 func TestCloneState(t *testing.T) {
